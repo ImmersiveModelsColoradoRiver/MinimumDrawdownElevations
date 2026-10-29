@@ -12,16 +12,16 @@ This repository contains R and Python code to generate the figures in the paper 
 
 1. Download the entire folder structure to a local folder. If the path is too long, move to a local folder such as C:\Users\MinimumDrawdown.
 
-Figures 1 to XXX and Table 1 and A1:
+Figures 1, 2, and 4:
 
-1. Move into the folder **R**.
+1. Move into the folder **R-Figs**.
 1. Then move into the folder **MinimumDrawdownFigures**.
 1. Follow the instructions in the **README.md** file within this folder.
 1. Note: the folder **AutoReadUSBRData** contains functions and scripts to read reservoir and water conservation program activity data from Reclamation web sites.
 
-Figures YYYY:
+Figures 3, 5, and 6:
 
-1. Move into the folder **Python7**.
+1. Move into the folder **Python-Figs**.
 1. Follow the directions in the **README.md** file within this folder.
 
 ## Persistent Version of Repository
