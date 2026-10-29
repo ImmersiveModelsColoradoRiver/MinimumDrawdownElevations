@@ -4,8 +4,8 @@ This repository contains R and Python code to generate the figures in the paper 
 
 ## Explanation of Contents
 
-1. **R**: R code to generate figures 1 to XX in the paper.
-1. **Python**: Python code to generate figures YYY and Z paper.
+1. **R-Figs**: R code to generate Figures 1, 2, and 4 in the paper.
+1. **Python-Figs**: Python code to generate Figures 3, 5, and 6 in paper.
 1. **WhyCommunicateMinimumDrawdownElevationsPowellMeadMitigate.docx**: Word file containing the most recent version of the manuscript.
 1. **TablePowellMinimumDrawdown.xlsx**: Excel file with Table 1 in manuscript.
 ## Directions to Generate Results
