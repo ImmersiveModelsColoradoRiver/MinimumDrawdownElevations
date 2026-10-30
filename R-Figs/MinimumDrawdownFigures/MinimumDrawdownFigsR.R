@@ -261,7 +261,7 @@ cPowellElevationsConcatNarrow <- dfPowellElevationsAbove %>%
   select(StorageAboveLabel) %>%
   summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
 
-nCatastrophicVolume <- dfPowellElevationsConsequence %>% filter(`Elevation (feet)`  == nCatastrophicElevation0) %>% pull(ActiveStorageMAF)
+nCatastrophicVolume <- dfPowellElevationsConsequence %>% filter(`Elevation (feet)`  == nCatastrophicElevation) %>% pull(ActiveStorageMAF)
 
 dfPowellElevations2 <- dfPowellElevations %>% filter(`Elevation (feet)` %in% c(nCatastrophicElevation, nMinimumDrawdownElevation))
 
