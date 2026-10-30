@@ -1,11 +1,10 @@
 # MinimumDrawdownFigsR.r
 #
 # This script harvests Daily, Monthly, and Annual Lake Powell and Lake Mead data
-# from the Reclamation data portal and plots a variety of historical
-# and current reservoir data.
+# from the Reclamation data portal and plots in support of the paper Why communicating minimum drawdown elevations ....
 
 # David E. Rosenberg
-# January 13, 2026
+# October 29, 2026
 # Utah State University
 # david.rosenberg@usu.edu
 
@@ -57,56 +56,10 @@ dfPowellAnnual$OneYearTarget82 <- dfPowellAnnual$OneYearTarget + 0.75
 dfPowellAnnual$TenYearTarget <- dfPowellAnnual$OneYearTarget * 10  # Paria flow (0.02 maf per year adds 0.2 maf over 10 years)
 dfPowellAnnual$TenYearTarget82 <- dfPowellAnnual$TenYearTarget + 10*0.75
 
-
-
 #Get the blue color bar
 pBlues <- brewer.pal(9,"Blues")
 pReds <- brewer.pal(9,"Reds")
 
-#### Figure 1. Annual Powell Release compared to 7.5 and 8.23 targets
-#Pivot the Wide format to Longer for Plotting with different colors
-dfPowellAnnualLong <- pivot_longer(data = dfPowellAnnual, cols = c(AnnualValue, OneYearTarget, OneYearTarget82), names_to = "DataType", values_to = "Flow")
-dfPowellAnnualLong$DataTypeFactor <- factor(dfPowellAnnualLong$DataType, levels = c("AnnualValue", "OneYearTarget82", "OneYearTarget") )
-
-ggplot(data = dfPowellAnnualLong %>% filter(WaterYear >= 1995), aes(x = WaterYear, y = Flow , color = DataTypeFactor, linetype = DataTypeFactor)) +
-  #Powell release 
-  geom_line(size=2) +
-  
-  scale_color_manual(labels = c("Annual Release", "8.23 Target", "7.48 Target"), values = c("AnnualValue" = pBlues[8], "OneYearTarget82" =  pReds[7], "OneYearTarget" = pReds[4])) +
-  scale_linetype_manual(labels = c("Annual Release", "8.23 Target", "7.48 Target"), values = c("AnnualValue" = "solid", "OneYearTarget82" =  "dashed", "OneYearTarget" = "twodash")) +
-  scale_x_continuous(breaks = seq(1970,2026,5)) +
-  theme_bw() +
-  #coord_fixed() +
-  labs(x="", y="Powell Release\n(million acre-feet per year)") +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18))
-#theme(text = element_text(size=20), legend.text=element_text(size=16)
-
-ggsave("PowellAnnualRelease.png", width=9, height = 6.5, units="in")
-
-
-#### Figure 2. Ten-Year Powell Release compared to 10-year targets
-
-#Pivot the Wide format to Longer for Plotting with different colors
-dfPowellTenYearLong <- pivot_longer(data = dfPowellAnnual, cols = c(TenYearRelease, TenYearTarget, TenYearTarget82), names_to = "DataType", values_to = "Flow")
-dfPowellTenYearLong$DataTypeFactor <- factor(dfPowellTenYearLong$DataType, levels = c("TenYearRelease", "TenYearTarget82", "TenYearTarget") )
-
-ggplot(data = dfPowellTenYearLong %>% filter(WaterYear >= 1995), aes(x = WaterYear, y = Flow , color = DataTypeFactor, linetype = DataTypeFactor)) +
-  #Powell release 
-  geom_line(size=2) +
-  
-  scale_color_manual(labels = c("10-Year Release", "82.3 Target", "74.8 Target"), values = c("TenYearRelease" = pBlues[8], "TenYearTarget82" =  pReds[7], "TenYearTarget" = pReds[4])) +
-  scale_linetype_manual(labels = c("10-Year Release", "82.3 Target", "74.8 Target"), values = c("TenYearRelease" = "solid", "TenYearTarget82" =  "dashed", "TenYearTarget" = "twodash")) +
-  scale_x_continuous(breaks = seq(1970,2026,5)) +
-  theme_bw() +
-  #coord_fixed() +
-  labs(x="", y="Powell Release\n(million acre-feet per year)") +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18))
-#theme(text = element_text(size=20), legend.text=element_text(size=16)
-
-ggsave("PowellTenYearRelease.png", width=9, height = 6.5, units="in")
-
-#Export to CSV
-write.csv(dfPowellAnnual,"dfPowellAnnual.csv" )
 
 #### Spit out the most recent Lake Powell and Lake Mead Pool elevations
 dfResDataDaily <- lResData$dfResDaily
@@ -128,11 +81,10 @@ print(paste("Reservoir Data on: ", dMaxDay))
 print(paste("Reservoir Data on:",month.name[month(dMaxDay)],day(dMaxDay),",",year(dMaxDay)))
 print(dfResValues)
 
-################
-#  Figure 3. Powell, Mead, and Combined storage plot
-#
 
-# Combined, Powell, and Mead on one plot
+
+##########
+## Figure 1. Lake Powell storage/elevation over time in reference to catastrophic elevations
 
 # Filter the Powell and Mead monthly storages
 dfResDataMonthly <- lResData$dfResMonthly
@@ -143,104 +95,6 @@ dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year,
 #Filter to data after 1995
 dfResStorageWide1995 <- dfResStorageWide %>% filter(Year >= 1995)
 
-ggplot() +
-  #Powell storage
-  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Powell`, color="Powell"), size=2) +
-  #Mead Storage
-  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Mead`, color="Mead"), size=2) +
-  #Combined Storage
-  geom_line(data=dfResStorageWide1995,aes(x=as.Date(Date), y=`Lake Powell` + `Lake Mead`, color="Combined"), size=2) +
-  scale_color_manual(values = c("purple","red","blue"), breaks=c("Combined", "Powell", "Mead")) +
-  #geom_area(data=dfPlotData,aes(x=month,y=stor_maf, fill = variable), position='stack') +
-  scale_y_continuous(breaks = seq(0,50,by=10),labels=seq(0,50,by=10)) +
-  scale_x_date(limits= c(as.Date("1995-01-01"), as.Date("2030-01-01")),
-               date_breaks = "5 years", # Major ticks every 10 years
-               date_labels = "%Y") +
-  
-  
-  #    scale_y_continuous(breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]),labels=c(0,5.98,9.6,12.2,dfMaxStor[2,2]),  sec.axis = sec_axis(~. +0, name = "Mead Level (feet)", breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]), labels = c(895,1025,1075,1105,1218.8))) +
-  #scale_x_discrete(breaks=cMonths, labels= cMonthsLabels) +
-  #scale_x_continuous(breaks=seq(1960,2020,by=10), labels= seq(1960,2020,by=10)) +
-  
-  
-  #scale_fill_manual(breaks=c(1:6),values = palBlues[2:7]) + #,labels = variable) + 
-  theme_bw() +
-  #coord_fixed() +
-  labs(x="", y="Active Storage (MAF)", color = "Reservoir") +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18))
-#theme(text = element_text(size=20), legend.text=element_text(size=16)
-
-
-################
-# Figure 4. Powell on X and Mead on Y with 1:1
-
-#Filter out a narrow set of Powell Critical elevations
-
-dfPowellElevationsFiltered <- dfTemp$dfPowellElevations %>% filter(`Elevation (feet)` %in% c(3370, 3490, 3525, 3600, 3700))
-
-ggplot() +
-  # Plot a 1:1 line to total storage
-  geom_abline(intercept = 0, slope = 1, color="1:1 line (by volume)", size=2, linetype="longdash", show.legend = FALSE) +
-    #Label the 1:1 line
-  geom_text(aes(x=3.5,y=4.2,label="1:1 line"), color="black", angle = 45, size =6, show.legend = FALSE) +
-
-  #Overplot Mead-Powell historical storage -- January of each year
-  #Before guidelines in place in Red
-  geom_path(data = dfResStorageWide %>% filter(Month == 1, Year < 2007), aes(x = `Lake Powell`, y = `Lake Mead`, color="Before Guidelines"), size=1.5, linetype=1, show.legend = TRUE) +
-  #After guidelines in place in purple
-  geom_path(data = dfResStorageWide %>% filter(Month == 1, Year >=  2007), aes(x = `Lake Powell`, y = `Lake Mead`, color="After Guidelines"), size=1.5, linetype=1, show.legend = TRUE) +
-
-  #Label each January with it's year
-  #geom_text_repel(data=dfResStorageWide %>% filter(Month == 1, Year %% 4 == 0), point.padding = NA, aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, angle = 0, size = 2)) +
-  #geom_text_repel(data=dfResStorageWide %>% filter(Month == 1, Year %% 4 == 0), aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, angle = 0, size = 2)) +
-
-  # All years in black
-  #geom_text(data = dfResStorageWide %>% filter(Month == 1, Year %% 2 == 0), aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, angle = 0, size = 1)) +
-  
-  #Before guidelines
-  geom_text(data = dfResStorageWide %>% filter(Month == 1, Year %% 2 == 0, Year < 2007), aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, angle = 0, size = 1, color = "Before Guidelines")) +
-  # After guidelines
-  geom_text(data = dfResStorageWide %>% filter(Month == 1, Year %% 2 == 0, Year >= 2007), aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, angle = 0, size = 1, color = "After Guidelines")) +
-  
-  
-    # Before guidelines
-  #geom_text_repel(data=dfResStorageWide %>% filter(Month == 1, Year < 2007), point.padding = NA, aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, color="Before Guidelines", angle = 0, size = 2, check_overlap = TRUE)) +
-  # After guidelines
-  #geom_text_repel(data=dfResStorageWide %>% filter(Month == 1, Year >= 2007), point.padding = NA, aes(x = `Lake Powell`, y = `Lake Mead`, label = Year, color="After Guidelines", angle = 0, size = 2, check_overlap = TRUE)) +
-  
-  
-  
-   #set colors for lines
-
-   scale_color_manual(breaks = c("Before Guidelines", "After Guidelines"),
-                          #All years in Black 
-                          # values= c(pBlues[8], pBlues[5], "black"),
-                            values= c(pBlues[6], pReds[6]),
-                            labels = c("Before Guidelines", "With Guidelines")) +
-  
-  #Create secondary y axes for Mead Lake Level
-  scale_y_continuous(limits = c(0,25), breaks = c(0,5,10,15,20,25),labels=c(0,5,10,15, 20,25),  sec.axis = sec_axis(~. +0, name = "Mead Level (feet)", breaks = dfTemp$dfMeadElevations$ActiveStorageMAF, labels = dfTemp$dfMeadElevations$Label)) +
-  #Create secondary x axes for Powell Lake Level
-  scale_x_continuous(limits = c(0,25), breaks = c(0,5,10,15,20,25),labels=c(0,5,10,15, 20,25), sec.axis = sec_axis(~. +0, name = "Powell Level (feet)", breaks = dfPowellElevationsFiltered$ActiveStorageMAF , labels = dfPowellElevationsFiltered$`Elevation (feet)`)) +
-  
-  theme_bw() +
-  coord_fixed() +
-  
-  #guides(size = "none", colour = guide_legend("Historical volumes (year)"), fill="none") +
-  guides(size = "none", colour = guide_legend(""), fill="none") +
-  
-  labs(x="Powell Active Storage (MAF)", y="Mead Active Storage (MAF)") +
-
-       # theme(text = element_text(size=14), legend.text=element_text(size=10),
-       #  panel.border = element_rect(colour = "black", fill="NA"),
-       #  legend.background = element_blank(),
-       #  legend.box.background = element_rect(colour = "black", fill="grey"),
-       #  legend.position = c(1.13,0.620))
-  theme(text = element_text(size=14))  # legend.position = "none")
-
-
-##########
-## Figure 5. Lake Powell storage/elevation over time
 
 # Calculate volumes from current storage to elevations 3,525, 3,500, and 3490
 dfPowellElevations <- dfTemp$dfPowellElevations
@@ -359,7 +213,7 @@ lFontSizeReduction <- 2
 #         panel.grid.minor = element_blank())
 
 
-### Plot 5C - Powell history back to 2025 and y axis cut at 3,575 feet
+### Figure 4 - Powell history back to 2025 and y axis cut at 3,575 feet
 
 dStartDate <- as.Date("2024-01-01")
 
@@ -415,29 +269,29 @@ ggplot() +
         axis.text.y.right = element_text(size = lFontSize - lFontSizeReduction))
 
 
+# ##########
+# ## Figure 5C - Calculating average change of Powell storage per day and per week (slope)
+# 
+# # Date of recent maximum to start
+# dLocalMaxDay <- as.Date("2026-06-03")
+# 
+# # Pull storage for local max and end date
+# dLocalMaxStorage <- dfResStorageDailyWide %>% filter(DateAsDate == dLocalMaxDay) %>% pull(`Lake Powell`)
+# dCurrStorage <- dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage)
+# 
+# dStorageChangePerDay <- (dLocalMaxStorage - dCurrStorage) / as.numeric(dYesterday - dLocalMaxDay)
+# dStorageChangePerWeek <- dStorageChangePerDay * 7
+# 
+# #Number of Days until 3514
+# 
+# dfPowellElevations$DaysUntilVolume <- round(dfPowellElevations$StorageAbove / dStorageChangePerDay, digits = 0)
+# dfPowellElevations$WeeksUntilVolume <- round(dfPowellElevations$StorageAbove / dStorageChangePerWeek, digits = 0)
+# 
+# print(dfPowellElevations %>% select(Label, ActiveStorageMAF, DaysUntilVolume, WeeksUntilVolume))
+
+
 ##########
-## Figure 5C - Calculating average change of Powell storage per day and per week (slope)
-
-# Date of recent maximum to start
-dLocalMaxDay <- as.Date("2026-06-03")
-
-# Pull storage for local max and end date
-dLocalMaxStorage <- dfResStorageDailyWide %>% filter(DateAsDate == dLocalMaxDay) %>% pull(`Lake Powell`)
-dCurrStorage <- dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage)
-
-dStorageChangePerDay <- (dLocalMaxStorage - dCurrStorage) / as.numeric(dYesterday - dLocalMaxDay)
-dStorageChangePerWeek <- dStorageChangePerDay * 7
-
-#Number of Days until 3514
-
-dfPowellElevations$DaysUntilVolume <- round(dfPowellElevations$StorageAbove / dStorageChangePerDay, digits = 0)
-dfPowellElevations$WeeksUntilVolume <- round(dfPowellElevations$StorageAbove / dStorageChangePerWeek, digits = 0)
-
-print(dfPowellElevations %>% select(Label, ActiveStorageMAF, DaysUntilVolume, WeeksUntilVolume))
-
-
-##########
-## Figure 6. Lake Mead storage/elevation over time
+## Figure 2. Lake Mead storage/elevation over time vs catastrophic elevations
 
 dfMeadElevations <- dfTemp$dfMeadElevations
 dfMeadElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "Storage", ResName == "Lake Mead") %>% pull(Value) / 1e6
@@ -486,51 +340,6 @@ ggplot() +
         panel.grid.minor = element_blank())
 
 
-##################
-## Figure 7
-
-#Histogram -- frequency of annual Release volumes
-ggplot(dfResDataAnnual %>% filter(ResName == "Lake Powell", FieldName == "Release volume"), aes(x=AnnualValue)) +
-  geom_histogram(color="darkmagenta", fill="magenta", binwidth = 2) +
-  
-  scale_x_continuous(limits = c(2,22), breaks = seq(2,22,by=2)) +
-  #scale_y_continuous(breaks = seq(0,11,by=2)) +
-  
-  labs(x="Powell Release\n(million acre feet per year)", y="Frequency\n(number of years)") +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18),
-        legend.key = element_blank())
-
-
-#################
-# Figure 8. Histogram -- frequency of annual release volumes
-ggplot(dfResDataAnnual %>% filter(ResName == "Lake Powell", FieldName == "Inflow Volume"), aes(x=AnnualValue)) +
-  geom_histogram(color="darkmagenta", fill="magenta", binwidth = 2) +
-  
-  scale_x_continuous(limits = c(2,22), breaks = seq(2,22,by=2)) +
-  #scale_y_continuous(breaks = seq(0,11,by=2)) +
-  
-  labs(x="Powell Inflow\n(million acre feet per year)", y="Frequency\n(number of years)") +
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18),
-        legend.key = element_blank())
-
-##############
-### Figure 9. As mixed bar (inflow) line (release) plot
-
-ggplot() +
-  #Bar graph of Powell Inflow
-  geom_bar(data = dfResDataAnnual %>% filter(ResName == "Lake Powell", FieldName == "Inflow Volume"), aes(x = WaterYear, y=AnnualValue, fill = "Inflow"), stat="identity") +
-  #Line graph of Powell Release
-  geom_line(data = dfResDataAnnual %>% filter(ResName == "Lake Powell", FieldName == "Release volume"), aes(x = WaterYear, y=AnnualValue, group = 1, color="Release"), size=2) +
-  scale_color_manual(" ", values = c("Inflow" = "grey50", "Release" = "blue")) +
-  scale_fill_manual("", values="grey50") +
-  labs(x="", y="Water Volume\n(million acre-feet per year)") +  
-  
-  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18),
-        panel.background = element_blank(), 
-        legend.key = element_blank(),
-        axis.line = element_line(colour = "black"))
-
-########  
 
 dfResDataDaily$DateAsDate <- ymd(dfResDataDaily$Date)
 ##############
@@ -563,20 +372,36 @@ ggplot() +
         axis.line = element_line(colour = "black"))
 
 
+################
+#  Figure 3. Powell, Mead, and Combined storage plot
+#
 
-#### Figure 10. Powell Annual Evaporation
-ggplot(data = dfResDataAnnual %>% filter(ResName == "Lake Powell", FieldName == "Evaporation")) +
-  geom_line(aes(x=WaterYear, y=`AnnualValue`, color=pBlues[7]), size=2) +
+# Combined, Powell, and Mead on one plot
 
+
+ggplot() +
+  #Powell storage
+  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Powell`, color="Powell"), size=2) +
+  #Mead Storage
+  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Mead`, color="Mead"), size=2) +
+  #Combined Storage
+  geom_line(data=dfResStorageWide1995,aes(x=as.Date(Date), y=`Lake Powell` + `Lake Mead`, color="Combined"), size=2) +
+  scale_color_manual(values = c("purple","red","blue"), breaks=c("Combined", "Powell", "Mead")) +
   #geom_area(data=dfPlotData,aes(x=month,y=stor_maf, fill = variable), position='stack') +
-  #scale_y_continuous(breaks = seq(0,50,by=10),labels=seq(0,50,by=10)) +
-  #scale_x_date(limits= c(as.Date("1995-01-01"), as.Date("2030-01-01")),
-  #             date_breaks = "5 years", # Major ticks every 10 years
-  #             date_labels = "%Y") +
+  scale_y_continuous(breaks = seq(0,50,by=10),labels=seq(0,50,by=10)) +
+  scale_x_date(limits= c(as.Date("1995-01-01"), as.Date("2030-01-01")),
+               date_breaks = "5 years", # Major ticks every 10 years
+               date_labels = "%Y") +
+  
+  
+  #    scale_y_continuous(breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]),labels=c(0,5.98,9.6,12.2,dfMaxStor[2,2]),  sec.axis = sec_axis(~. +0, name = "Mead Level (feet)", breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]), labels = c(895,1025,1075,1105,1218.8))) +
+  #scale_x_discrete(breaks=cMonths, labels= cMonthsLabels) +
+  #scale_x_continuous(breaks=seq(1960,2020,by=10), labels= seq(1960,2020,by=10)) +
+  
   
   #scale_fill_manual(breaks=c(1:6),values = palBlues[2:7]) + #,labels = variable) + 
   theme_bw() +
   #coord_fixed() +
-  labs(x="", y="Lake Powell Evaporation\n(MAF per year)") +
-  theme(text = element_text(size=20), legend.position = "none")
-
+  labs(x="", y="Active Storage (MAF)", color = "Reservoir") +
+  theme(text = element_text(size=20), legend.title=element_blank(), legend.text=element_text(size=18))
+#theme(text = element_text(size=20), legend.text=element_text(size=16)
