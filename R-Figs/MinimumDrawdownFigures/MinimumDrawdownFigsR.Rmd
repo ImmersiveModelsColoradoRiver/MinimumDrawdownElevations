@@ -140,7 +140,30 @@ sYesterdayDate <- paste(month.name[month(dYesterday)], day(dYesterday),",",year(
 
 # Calculate volumes from current storage to elevations 3,525, 3,500, and 3490
 
+# Filter the Powell and Mead monthly storages
+dfResDataMonthly <- lResData$dfResMonthly
+#Filter the Powell and Mead storages
+dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
+#Turn narrow into wide so separate columns for Lake Powell and Lake Mead
+dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
 
+dfYesterday <- data.frame(Date = dMaxDay, 
+                          Year = year(dMaxDay), 
+                          Month = month(dMaxDay))
+                          
+dfYesterday$`Lake Powell` = dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage)
+dfYesterday$`Lake Mead` = dfResValues %>% filter(ResName == "Lake Mead") %>% pull(Storage)
+dfYesterday$DateAsDate <- as.Date(dfYesterday$Date)
+
+#Add yesterday to monthly values
+dfResStorageWide <- rbind(dfResStorageWide, dfYesterday)
+
+#Filter to data after 1995
+dfResStorageWide1995 <- dfResStorageWide %>% filter(Year >= 1995)
+
+
+
+# Calculate volumes from current storage to elevations 3,525, 3,500, and 3490
 dfPowellElevations <- dfTemp$dfPowellElevations
 dfPowellElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "Storage", ResName == "Lake Powell") %>% pull(Value) / 1e6
 dfPowellElevations$StorageAbove <- dfPowellElevations$CurrentStorage - dfPowellElevations$ActiveStorageMAF
@@ -162,8 +185,6 @@ dfPowellElevationsConsequence$Label <- paste0(dfPowellElevationsConsequence$`Ele
 dfPowellElevationsConsequence$Label[dfPowellElevationsConsequence$`Elevation (feet)` == 3525] <- dfPowellElevationsConsequence$Consequence[dfPowellElevationsConsequence$`Elevation (feet)` == 3525]
 
 
-
-
 # Filter out the last (most recent entry)
 dfResStorageWide$DateAsDate <- as.Date(dfResStorageWide$Date)
 dfLastDate <- dfResStorageWide %>% arrange(DateAsDate)
@@ -171,12 +192,14 @@ dfLastDate <- dfLastDate[nrow(dfLastDate),]
 
 # Combine all the current storage above critical elevations to one character string separated by newlines
 
-cPowellElevationsConcat <- dfPowellElevations %>%
+cPowellElevationsConcat <- dfPowellElevationsConsequence %>%
      arrange(desc(`Elevation (feet)`)) %>%  
-     filter(`Elevation (feet)` >= 3490, `Elevation (feet)` <= 3525) %>%
+     filter(`Elevation (feet)` >= 3370, `Elevation (feet)` <= 3490) %>%
     
     select(StorageAboveLabel) %>%
     summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
+
+#Format current storage and elevation for listing
 
 cRes <- "Lake Powell"
 nStorage <- round(dfResValues %>% filter(ResName == cRes) %>% pull(Storage), digits = 1)
@@ -184,6 +207,12 @@ nElevation <- round(dfResValues %>% filter(ResName == cRes) %>% pull(`Pool Eleva
 
 #cCurrent <- paste0("Active storage yesterday:\n", nStorage, " maf (", nElevation," feet)")
 cCurrent <- paste0("Active storage on ", sYesterdayDate, ":\n", nStorage, " maf (", nElevation," feet)")
+
+dEndDate <- as.Date("2027-01-01")
+
+dfPowellElevationsConsequenceNoLines <- dfPowellElevationsConsequence %>% filter(!`Elevation (feet)` %in% cElevationsNoText)
+
+### Make the plot
 
 nTextSize <- 3
 
@@ -201,7 +230,7 @@ ggplot() +
   #Create secondary y axes for Powell Lake Level
    scale_y_continuous(limits = c(0,25), breaks = dfTemp$dfPowellElevations$ActiveStorageMAF,labels=round(dfTemp$dfPowellElevations$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet)", breaks = dfTemp$dfPowellElevations$ActiveStorageMAF , labels = dfTemp$dfPowellElevations$Label)) +
   
-  geom_hline(yintercept = dfTemp$dfPowellElevations$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
+  geom_hline(yintercept = dfTemp$dfPowellElevationsConsequenceNoLines$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
     geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Powell`), color = "blue", size = 4 ) +
   
     theme_bw() +
