@@ -93,6 +93,16 @@ dfResDataMonthly <- lResData$dfResMonthly
 dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
 #Turn narrow into wide so separate columns for Lake Powell and Lake Mead
 dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
+
+dfYesterday <- data.frame(Date = dMaxDay, 
+                          Year = year(dMaxDay), 
+                          Month = month(dMaxDay), 
+                          `Lake Powell` = dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage),
+                          `Lake Mead` = dfResValues %>% filter(ResName == "Lake Mead") %>% pull(Storage))
+dfYesterday$DateAsDate <- as.Date(dfYesterday$Date)
+#Add yesterday to monthly values
+dfResStorageWide <- rbind(dfResStorageWide, dfYesterday)
+
 #Filter to data after 1995
 dfResStorageWide1995 <- dfResStorageWide %>% filter(Year >= 1995)
 
@@ -105,6 +115,8 @@ dfPowellElevations$StorageAboveLabel <- paste0(round(dfPowellElevations$StorageA
 
 # Create a second data frame with only the consequential rows
 dfPowellElevationsConsequence <- dfPowellElevations %>% filter(!is.na(Consequence))
+
+dfPowellElevationsConsequence$Consequence <- str_replace_all(dfPowellElevationsConsequence$Consequence, ";", "\n")
 
 #Recalculate the Label
 dfPowellElevationsConsequence$Label <- paste0(dfPowellElevationsConsequence$`Elevation (feet)`, " - ", dfPowellElevationsConsequence$Consequence)
