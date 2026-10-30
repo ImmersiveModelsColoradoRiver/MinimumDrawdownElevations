@@ -238,25 +238,40 @@ ggplot() +
 ### Figure 4. Lake Powell elevations with buffer and catastrophic elevations
 ######################################
 
+nCatastrophicElevation <- 3490
+nMinimumDrawdownElevation <- 3500
+cElevations <- c("Minimum Drawdown Elevation", "Catastrophic Elevation")
+
+
+dfPowellElevationsAbove <- dfPowellElevations %>%
+        arrange(desc(`Elevation (feet)`)) %>%  
+        filter(`Elevation (feet)` >= nCatastrophicElevation, `Elevation (feet)` <= nMinimumDrawdownElevation)
+
+dfPowellElevationsAbove$ElevationText <- cElevations
+
+dfPowellElevationsAbove$StorageAboveLabel <- paste0(round(dfPowellElevationsAbove$StorageAbove, digits = 1), " maf above ", dfPowellElevationsAbove$ElevationText)
+
+
 # Combine all the current storage above critical elevations to one character string separated by newlines
 
 #Recalculate elevations above for narrower time window
-cPowellElevationsConcatNarrow <- dfPowellElevations %>%
-  arrange(desc(`Elevation (feet)`)) %>%  
-  filter(`Elevation (feet)` >= 3525, `Elevation (feet)` <= 3525) %>%
+cPowellElevationsConcatNarrow <- dfPowellElevationsAbove %>%
+  arrange(desc(`Elevation (feet)`)) %>%
   
   select(StorageAboveLabel) %>%
   summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
 
-nCatastrophicVolume <- dfPowellElevations %>% filter(`Elevation (feet)`  == 3490) %>% pull(ActiveStorageMAF)
+nCatastrophicVolume <- dfPowellElevationsConsequence %>% filter(`Elevation (feet)`  == nCatastrophicElevation0) %>% pull(ActiveStorageMAF)
 
-dfPowellElevations2 <- dfPowellElevations %>% filter(`Elevation (feet)` %in% c(3490, 3500))
+dfPowellElevations2 <- dfPowellElevations %>% filter(`Elevation (feet)` %in% c(nCatastrophicElevation, nMinimumDrawdownElevation))
 
-# Calculate storage above catastrophy elevation
+# Calculate storage above catastrophic elevation
 dfPowellElevations2$CatastrophyVolume <- nCatastrophicVolume
 dfPowellElevations2$VolumeAboveCatastraphy <- dfPowellElevations2$ActiveStorageMAF - dfPowellElevations2$CatastrophyVolume
 dfPowellElevations2$PoolLabel <- paste0("Minimum Drawdown Elevation\n(Buffer: ", round(dfPowellElevations2$VolumeAboveCatastraphy, digits = 1)," maf)")
-dfPowellElevations2$PoolLabel[1] <- "Catastrophic Elevation\n(No Hydropower - Vorticies)"
+cPowellCatastrophicConsequence <- dfPowellElevationsConsequence %>% select(Consequence) %>% pull(Consequence)
+
+dfPowellElevations2$PoolLabel[1] <- paste0("Catastrophic Elevation\n(",cPowellCatastrophicConsequence ,")")
 
 dfPowellElevations2$DateOffset <- c(270, 0)
 
@@ -266,8 +281,7 @@ nTextSize <- 5
 lFontSize <- 16
 lFontSizeReduction <- 2
 
-
-### Figure 4 - Powell history back to 2025 and y axis cut at 3,575 feet
+### Calculate date range for x axis
 
 dStartDate <- as.Date("2024-01-01")
 
