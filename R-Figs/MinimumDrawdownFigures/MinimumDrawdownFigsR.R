@@ -96,10 +96,12 @@ dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year,
 
 dfYesterday <- data.frame(Date = dMaxDay, 
                           Year = year(dMaxDay), 
-                          Month = month(dMaxDay), 
-                          `Lake Powell` = dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage),
-                          `Lake Mead` = dfResValues %>% filter(ResName == "Lake Mead") %>% pull(Storage))
+                          Month = month(dMaxDay))
+                          
+dfYesterday$`Lake Powell` = dfResValues %>% filter(ResName == "Lake Powell") %>% pull(Storage)
+dfYesterday$`Lake Mead` = dfResValues %>% filter(ResName == "Lake Mead") %>% pull(Storage)
 dfYesterday$DateAsDate <- as.Date(dfYesterday$Date)
+
 #Add yesterday to monthly values
 dfResStorageWide <- rbind(dfResStorageWide, dfYesterday)
 
@@ -113,14 +115,19 @@ dfPowellElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "St
 dfPowellElevations$StorageAbove <- dfPowellElevations$CurrentStorage - dfPowellElevations$ActiveStorageMAF
 dfPowellElevations$StorageAboveLabel <- paste0(round(dfPowellElevations$StorageAbove, digits = 2), " maf above elev. ", format(dfPowellElevations$`Elevation (feet)`,scientific = FALSE, big.mark = ",", trim = TRUE))
 
-# Create a second data frame with only the consequential rows
-dfPowellElevationsConsequence <- dfPowellElevations %>% filter(!is.na(Consequence))
+cElevationsNoText <- c(3525, 3575, 3600)
+
+# Create a second data frame with only the consequential rows or elevations in the list
+dfPowellElevationsConsequence <- dfPowellElevations %>% filter(!is.na(Consequence) | (`Elevation (feet)` %in% cElevationsNoText) )
+# Replace NAs with ""
+dfPowellElevationsConsequence <- dfPowellElevationsConsequence %>% mutate(Consequence = coalesce(Consequence,""))
 
 dfPowellElevationsConsequence$Consequence <- str_replace_all(dfPowellElevationsConsequence$Consequence, ";", "\n")
 
 #Recalculate the Label
 dfPowellElevationsConsequence$Label <- paste0(dfPowellElevationsConsequence$`Elevation (feet)`, " - ", dfPowellElevationsConsequence$Consequence)
-
+# Remove the elevation label from the ecosystem consequence
+dfPowellElevationsConsequence$Label[dfPowellElevationsConsequence$`Elevation (feet)` == 3525] <- dfPowellElevationsConsequence$Consequence[dfPowellElevationsConsequence$`Elevation (feet)` == 3525]
 
 # Filter out the last (most recent entry)
 dfResStorageWide$DateAsDate <- as.Date(dfResStorageWide$Date)
@@ -146,6 +153,8 @@ cCurrent <- paste0("Active storage on ", sYesterdayDate, ":\n", nStorage, " maf 
 
 dEndDate <- as.Date("2027-01-01")
 
+dfPowellElevationsConsequenceNoLines <- dfPowellElevationsConsequence %>% filter(!`Elevation (feet)` %in% cElevationsNoText)
+
 ### Make the plot
 ggplot() +
 
@@ -161,7 +170,7 @@ ggplot() +
   #Create secondary y axes for Powell Lake Level
    scale_y_continuous(limits = c(0,25), breaks = dfPowellElevationsConsequence$ActiveStorageMAF,labels=round(dfPowellElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequences", breaks = dfPowellElevationsConsequence$ActiveStorageMAF , labels = dfPowellElevationsConsequence$Label)) +
   
-  geom_hline(yintercept = dfPowellElevationsConsequence$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
+  geom_hline(yintercept = dfPowellElevationsConsequenceNoLines$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
   theme_bw() +
   
   geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Powell`), color = "blue", size = 4 ) +
