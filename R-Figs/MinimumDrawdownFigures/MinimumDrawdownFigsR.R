@@ -103,6 +103,13 @@ dfPowellElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "St
 dfPowellElevations$StorageAbove <- dfPowellElevations$CurrentStorage - dfPowellElevations$ActiveStorageMAF
 dfPowellElevations$StorageAboveLabel <- paste0(round(dfPowellElevations$StorageAbove, digits = 2), " maf above elev. ", format(dfPowellElevations$`Elevation (feet)`,scientific = FALSE, big.mark = ",", trim = TRUE))
 
+# Create a second data frame with only the consequential rows
+dfPowellElevationsConsequence <- dfPowellElevations %>% filter(!is.na(Consequence))
+
+#Recalculate the Label
+dfPowellElevationsConsequence$Label <- paste0(dfPowellElevationsConsequence$`Elevation (feet)`, " - ", dfPowellElevationsConsequence$Consequence)
+
+
 # Filter out the last (most recent entry)
 dfResStorageWide$DateAsDate <- as.Date(dfResStorageWide$Date)
 dfLastDate <- dfResStorageWide %>% arrange(DateAsDate)
@@ -140,7 +147,7 @@ ggplot() +
                date_labels = "%Y") +
   
   #Create secondary y axes for Powell Lake Level
-   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevations$ActiveStorageMAF,labels=round(dfPowellElevations$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet)", breaks = dfPowellElevations$ActiveStorageMAF , labels = dfPowellElevations$Label)) +
+   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevations$ActiveStorageMAF,labels=round(dfPowellElevations$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequences", breaks = dfPowellElevations$ActiveStorageMAF , labels = dfPowellElevations$Label)) +
   
   geom_hline(yintercept = dfPowellElevations$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
   theme_bw() +
