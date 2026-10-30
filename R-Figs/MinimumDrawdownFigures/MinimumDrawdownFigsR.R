@@ -136,9 +136,9 @@ dfLastDate <- dfLastDate[nrow(dfLastDate),]
 
 # Combine all the current storage above critical elevations to one character string separated by newlines
 
-cPowellElevationsConcat <- dfPowellElevations %>%
+cPowellElevationsConcat <- dfPowellElevationsConsequence %>%
      arrange(desc(`Elevation (feet)`)) %>%  
-     filter(`Elevation (feet)` >= 3490, `Elevation (feet)` <= 3525) %>%
+     filter(`Elevation (feet)` >= 3370, `Elevation (feet)` <= 3490) %>%
     
     select(StorageAboveLabel) %>%
     summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
@@ -248,9 +248,9 @@ cPowellElevationsConcatNarrow <- dfPowellElevations %>%
   select(StorageAboveLabel) %>%
   summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
 
-nCatastrophicVolume <- dfPowellElevations %>% filter(`Elevation (feet)`  == 3514) %>% pull(ActiveStorageMAF)
+nCatastrophicVolume <- dfPowellElevations %>% filter(`Elevation (feet)`  == 3490) %>% pull(ActiveStorageMAF)
 
-dfPowellElevations2 <- dfPowellElevations %>% filter(`Elevation (feet)` %in% c(3514, 3525))
+dfPowellElevations2 <- dfPowellElevations %>% filter(`Elevation (feet)` %in% c(3490, 3500))
 
 # Calculate storage above catastrophy elevation
 dfPowellElevations2$CatastrophyVolume <- nCatastrophicVolume
