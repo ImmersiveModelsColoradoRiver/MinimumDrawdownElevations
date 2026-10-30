@@ -147,9 +147,9 @@ ggplot() +
                date_labels = "%Y") +
   
   #Create secondary y axes for Powell Lake Level
-   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevations$ActiveStorageMAF,labels=round(dfPowellElevations$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequences", breaks = dfPowellElevations$ActiveStorageMAF , labels = dfPowellElevations$Label)) +
+   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevationsConsequence$ActiveStorageMAF,labels=round(dfPowellElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequences", breaks = dfPowellElevationsConsequence$ActiveStorageMAF , labels = dfPowellElevationsConsequence$Label)) +
   
-  geom_hline(yintercept = dfPowellElevations$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
+  geom_hline(yintercept = dfPowellElevationsConsequence$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
   theme_bw() +
   
   geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Powell`), color = "blue", size = 4 ) +
