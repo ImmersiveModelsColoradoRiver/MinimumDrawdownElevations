@@ -129,7 +129,7 @@ dfResValues$Storage <- dfResValues$Storage / 1e6
 
 ## Figure 1: Lake Powell Storage and Elevation over Time in relation to Consequences.
 
-```{r ResDataFig1, echo=FALSE, warning=FALSE, message=FALSE}
+```{r ResDataFig1, echo=FALSE, warning=FALSE, message=FALSE, fig.height=6}
 ##########
 ### Figure 1. Lake Powell storage/elevation over time
 
@@ -170,7 +170,7 @@ dfPowellElevations$StorageAbove <- dfPowellElevations$CurrentStorage - dfPowellE
 dfPowellElevations$StorageAboveLabel <- paste0(round(dfPowellElevations$StorageAbove, digits = 1), " maf above elev. ", format(dfPowellElevations$`Elevation (feet)`,scientific = FALSE, big.mark = ",", trim = TRUE))
 
 
-cElevationsNoText <- c(3525, 3575, 3600)
+cElevationsNoText <- c(3550, 3575, 3600)
 
 # Create a second data frame with only the consequential rows or elevations in the list
 dfPowellElevationsConsequence <- dfPowellElevations %>% filter(!is.na(Consequence) | (`Elevation (feet)` %in% cElevationsNoText) )
