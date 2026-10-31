@@ -192,16 +192,32 @@ dfMeadElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "Stor
 dfMeadElevations$StorageAbove <- dfMeadElevations$CurrentStorage - dfMeadElevations$ActiveStorageMAF
 dfMeadElevations$StorageAboveLabel <- paste0(round(dfMeadElevations$StorageAbove, digits = 1), " maf above elev. ", format(dfMeadElevations$`Elevation (feet)`,scientific = FALSE, big.mark = ",", trim = TRUE))
 
+#cElevationsNoText <- c(3525, 3575, 3600)
+
+# Create a second data frame with only the consequential rows or elevations in the list
+dfMeadElevationsConsequence <- dfMeadElevations %>% filter(!is.na(Consequence) | (`Elevation (feet)` %in% cElevationsNoText) )
+# Replace NAs with ""
+dfMeadElevationsConsequence <- dfMeadElevationsConsequence %>% mutate(Consequence = coalesce(Consequence,""))
+
+dfMeadElevationsConsequence$Consequence <- str_replace_all(dfMeadElevationsConsequence$Consequence, ";", "\n")
+
+#Recalculate the Label
+dfMeadElevationsConsequence$Label <- paste0(dfMeadElevationsConsequence$`Elevation (feet)`, " - ", dfMeadElevationsConsequence$Consequence)
+# Remove the elevation label from the ecosystem consequence
+#dfMeadElevationsConsequence$Label[dfPowellElevationsConsequence$`Elevation (feet)` == 3525] <- dfPowellElevationsConsequence$Consequence[dfPowellElevationsConsequence$`Elevation (feet)` == 3525]
+
+
+
 # Combine all the current storage above critical elevations to one character string separated by newlines
-cMeadElevationsConcat <- dfMeadElevations %>%
+cMeadElevationsConcat <- dfMeadElevationsConsequence %>%
   arrange(desc(`Elevation (feet)`)) %>%  
-  filter(`Elevation (feet)` >= 955, `Elevation (feet)` <= 1020) %>%
+  filter(`Elevation (feet)` >= 895, `Elevation (feet)` <= 950) %>%
   
   select(StorageAboveLabel) %>%
   summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
 
 cRes <- "Lake Mead"
-nStorage <- round(dfResValues %>% filter(ResName == cRes) %>% pull(Storage), digits = 2)
+nStorage <- round(dfResValues %>% filter(ResName == cRes) %>% pull(Storage), digits = 1)
 nElevation <- round(dfResValues %>% filter(ResName == cRes) %>% pull(`Pool Elevation`), digits = 1)
 
 cCurrent <- paste0("Current storage is:\n", nStorage, " maf (", nElevation," feet)")
@@ -210,7 +226,7 @@ cCurrent <- paste0("Current storage is:\n", nStorage, " maf (", nElevation," fee
 ggplot() +
   
   geom_line(data = dfResStorageWide, aes(x = as.Date(Date), y = `Lake Mead`), size = 1.5) +
-  geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Mead`), color = pReds[7], size = 4 ) +
+  geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Mead`), color = "blue", size = 4 ) +
   
   geom_text(aes(x = as.Date("2026-01-01"), y = 21, label = cCurrent), fontface = "bold", color = "blue") + 
   
@@ -223,9 +239,9 @@ ggplot() +
                date_labels = "%Y") +
   
   #Create secondary y axes for Mead Lake Level
-  scale_y_continuous(limits = c(0,25), breaks = dfMeadElevations$ActiveStorageMAF,labels=round(dfMeadElevations$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Mead Elevation (feet)", breaks = dfMeadElevations$ActiveStorageMAF , labels = dfMeadElevations$Label)) +
+  scale_y_continuous(limits = c(0,25), breaks = dfMeadElevationsConsequence$ActiveStorageMAF,labels=round(dfMeadElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Mead Elevation (feet) and Consequences", breaks = dfMeadElevationsConsequence$ActiveStorageMAF , labels = dfMeadElevationsConsequence$Label)) +
   
-  geom_hline(yintercept = dfMeadElevations$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
+  geom_hline(yintercept = dfMeadElevationsConsequence$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
   theme_bw() +
   
   labs(x="", y="Mead Active Storage (MAF)") +

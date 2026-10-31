@@ -227,7 +227,7 @@ ggplot() +
                date_labels = "%Y") +
   
   #Create secondary y axes for Powell Lake Level
-   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevationsConsequence$ActiveStorageMAF,labels=round(dfPowellElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequence", breaks = dfPowellElevationsConsequence$ActiveStorageMAF , labels = dfPowellElevationsConsequence$Label)) +
+   scale_y_continuous(limits = c(0,25), breaks = dfPowellElevationsConsequence$ActiveStorageMAF,labels=round(dfPowellElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Powell Elevation (feet) and Consequences", breaks = dfPowellElevationsConsequence$ActiveStorageMAF , labels = dfPowellElevationsConsequence$Label)) +
   
   geom_hline(yintercept = dfPowellElevationsConsequenceNoLines$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
     geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Powell`), color = "blue", size = 4 ) +
@@ -235,6 +235,76 @@ ggplot() +
     theme_bw() +
   
   labs(x="", y="Powell Active Storage (MAF)") +
+  theme(text = element_text(size=lFontSize), legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.y.right = element_text(size = lFontSize - lFontSizeReduction))
+
+```
+
+## Figure 2: Lake Mead Storage and Elevation over Time and Consequences.
+
+```{r ResDataFig2, echo=FALSE, warning=FALSE, message=FALSE, fig.height=6} 
+##########
+### Figure 2. Lake Mead storage/elevation over time
+
+dfMeadElevations <- dfTemp$dfMeadElevations
+dfMeadElevations$CurrentStorage <- dfResElevations %>% filter(FieldName == "Storage", ResName == "Lake Mead") %>% pull(Value) / 1e6
+dfMeadElevations$StorageAbove <- dfMeadElevations$CurrentStorage - dfMeadElevations$ActiveStorageMAF
+dfMeadElevations$StorageAboveLabel <- paste0(round(dfMeadElevations$StorageAbove, digits = 1), " maf above elev. ", format(dfMeadElevations$`Elevation (feet)`,scientific = FALSE, big.mark = ",", trim = TRUE))
+
+#cElevationsNoText <- c(3525, 3575, 3600)
+
+# Create a second data frame with only the consequential rows or elevations in the list
+dfMeadElevationsConsequence <- dfMeadElevations %>% filter(!is.na(Consequence) | (`Elevation (feet)` %in% cElevationsNoText) )
+# Replace NAs with ""
+dfMeadElevationsConsequence <- dfMeadElevationsConsequence %>% mutate(Consequence = coalesce(Consequence,""))
+
+dfMeadElevationsConsequence$Consequence <- str_replace_all(dfMeadElevationsConsequence$Consequence, ";", "\n")
+
+#Recalculate the Label
+dfMeadElevationsConsequence$Label <- paste0(dfMeadElevationsConsequence$`Elevation (feet)`, " - ", dfMeadElevationsConsequence$Consequence)
+# Remove the elevation label from the ecosystem consequence
+#dfMeadElevationsConsequence$Label[dfPowellElevationsConsequence$`Elevation (feet)` == 3525] <- dfPowellElevationsConsequence$Consequence[dfPowellElevationsConsequence$`Elevation (feet)` == 3525]
+
+
+
+# Combine all the current storage above critical elevations to one character string separated by newlines
+cMeadElevationsConcat <- dfMeadElevationsConsequence %>%
+  arrange(desc(`Elevation (feet)`)) %>%  
+  filter(`Elevation (feet)` >= 895, `Elevation (feet)` <= 950) %>%
+  
+  select(StorageAboveLabel) %>%
+  summarise(all_text = str_c(as.character(unlist(.)), collapse = "\n"))
+
+cRes <- "Lake Mead"
+nStorage <- round(dfResValues %>% filter(ResName == cRes) %>% pull(Storage), digits = 1)
+nElevation <- round(dfResValues %>% filter(ResName == cRes) %>% pull(`Pool Elevation`), digits = 1)
+
+cCurrent <- paste0("Current storage is:\n", nStorage, " maf (", nElevation," feet)")
+
+ggplot() +
+  
+  geom_line(data = dfResStorageWide, aes(x = as.Date(Date), y = `Lake Mead`), size = 1.5) +
+
+  geom_text(aes(x = as.Date("2020-01-01"), y = 20.5, label = cCurrent), fontface = "bold", color = "blue", size = 3) + 
+  geom_text(aes(x = as.Date("2020-01-01"), y = 17, label = cMeadElevationsConcat), color = pReds[7], size = 3) +
+  
+  
+    
+  scale_x_date(limits= c(as.Date("1995-01-01"), as.Date("2030-01-01")),
+               date_breaks = "5 years", # Major ticks every 10 years
+               date_labels = "%Y") +
+  
+  #Create secondary y axes for Mead Lake Level
+  scale_y_continuous(limits = c(0,25), breaks = dfMeadElevationsConsequence$ActiveStorageMAF,labels=round(dfMeadElevationsConsequence$ActiveStorageMAF, digits = 1), sec.axis = sec_axis(~. +0, name = "Mead Elevation (feet) and Consequences", breaks = dfMeadElevationsConsequence$ActiveStorageMAF , labels = dfMeadElevationsConsequence$Label)) +
+  
+  geom_hline(yintercept = dfMeadElevationsConsequence$ActiveStorageMAF, color = pBlues[5], linetype = "dashed") +
+  
+    geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Mead`), color = "blue", size = 4 ) +
+  theme_bw() +
+  
+  labs(x="", y="Mead Active Storage (MAF)") +
   theme(text = element_text(size=lFontSize), legend.position = "none",
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
