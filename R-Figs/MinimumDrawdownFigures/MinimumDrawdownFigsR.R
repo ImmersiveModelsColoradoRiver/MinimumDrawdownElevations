@@ -383,7 +383,7 @@ ggplot() +
   geom_line(data = dfResDataDaily %>% filter(ResName == "Lake Powell", FieldName == "Inflow Volume", WaterYear >= max(WaterYear) - 1), aes(x = DateAsDate, y=Value, group = 1, color="Inflow"), size=1) +
   
     scale_color_manual(" ", labels = c(dfYearToDateVolume$Label[1],dfYearToDateVolume$Label[2] ), values = c("Inflow" = pBlues[7], "Release" = pReds[7])) +
-  scale_x_date( date_breaks = "1 month", date_labels = "%b\n%Y") +
+  scale_x_date( date_breaks = "2 month", date_labels = "%b\n%Y") +
  
   #Create secondary y axes for flow in cfs
   scale_y_continuous(labels = scales::label_comma(), sec.axis = sec_axis(transform = ~ . * 0.504, name = "Average Daily Flow\n(Cubic feet per second)", labels = scales::label_comma())) +
