@@ -421,4 +421,92 @@ ggplot() +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         axis.text.y.right = element_text(size = lFontSize - lFontSizeReduction))
- 
+
+
+
+```
+
+## Figure AA: Lake Powell, Lake Mead, and Combined Storage
+
+```{r ResDataFigAA, echo=FALSE, warning=FALSE, message=FALSE}
+
+################
+#  Figure 3. Powell, Mead, and Combined storage plot
+#
+
+# Combined, Powell, and Mead on one plot
+
+# Filter the Powell and Mead monthly storages
+
+dfResDataMonthly <- lResData$dfResMonthly
+#Filter the Powell and Mead storages
+dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
+#Turn narrow into wide so separate columns for Lake Powell and Lake Mead
+dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
+#Filter to data after 1995
+dfResStorageWide1995 <- dfResStorageWide %>% filter(Year >= 1995)
+
+ggplot() +
+  #Powell storage
+  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Powell`, color="Powell"), size=2) +
+  #Mead Storage
+  geom_line(data=dfResStorageWide1995 ,aes(x=as.Date(Date), y=`Lake Mead`, color="Mead"), size=2) +
+  #Combined Storage
+  geom_line(data=dfResStorageWide1995,aes(x=as.Date(Date), y=`Lake Powell` + `Lake Mead`, color="Combined"), size=2) +
+  scale_color_manual(values = c("purple","red","blue"), breaks=c("Combined", "Powell", "Mead")) +
+  #geom_area(data=dfPlotData,aes(x=month,y=stor_maf, fill = variable), position='stack') +
+  scale_y_continuous(breaks = seq(0,50,by=10),labels=seq(0,50,by=10)) +
+  scale_x_date(limits= c(as.Date("1995-01-01"), as.Date("2030-01-01")),
+               date_breaks = "5 years", # Major ticks every 10 years
+               date_labels = "%Y") +
+  
+  
+  #    scale_y_continuous(breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]),labels=c(0,5.98,9.6,12.2,dfMaxStor[2,2]),  sec.axis = sec_axis(~. +0, name = "Mead Level (feet)", breaks = c(0,5.98,9.6,12.2,dfMaxStor[2,2]), labels = c(895,1025,1075,1105,1218.8))) +
+  #scale_x_discrete(breaks=cMonths, labels= cMonthsLabels) +
+  #scale_x_continuous(breaks=seq(1960,2020,by=10), labels= seq(1960,2020,by=10)) +
+  
+  
+  #scale_fill_manual(breaks=c(1:6),values = palBlues[2:7]) + #,labels = variable) + 
+  theme_bw() +
+  #coord_fixed() +
+  labs(x="", y="Active Storage (MAF)", color = "Reservoir") +
+  theme(text = element_text(size=lFontSize), legend.title=element_blank(), legend.text=element_text(size=lFontSize-2))
+#theme(text = element_text(size=20), legend.text=element_text(size=16)
+
+```
+
+## Figure BB: Lake Powell Daily Inflow and Release.
+### Total volumes in legend are water year to date.
+```{r ResDataFigBB, echo=FALSE, warning=FALSE, message=FALSE} 
+##############
+#### Figure BB. Daily Powell Inflow/Release for current year
+
+dfResDataDaily$DateAsDate <- ymd(dfResDataDaily$Date)
+
+## Sum inflow and release volumes to date from the start of the water yesr.
+dfCurrentYear <- dfResDataDaily %>% filter(ResName == "Lake Powell", WaterYear >= max(WaterYear), FieldName %in% c("Release volume", "Inflow Volume"))
+
+dfYearToDateVolume <- dfCurrentYear %>% select(FieldName, Value) %>% group_by(FieldName) %>% dplyr::summarize(Total = sum(Value)/1e6)
+# Calculate the labels
+dfYearToDateVolume$FieldNameShort <- word(dfYearToDateVolume$FieldName,1)
+dfYearToDateVolume$Label <- paste0(dfYearToDateVolume$FieldNameShort, "\n(", round(dfYearToDateVolume$Total,digits = 1), " maf)")
+
+ggplot() +
+  #Line graph of Powell Release
+  geom_line(data = dfResDataDaily %>% filter(ResName == "Lake Powell", FieldName == "Release volume", WaterYear >= max(WaterYear) - 1) , aes(x = DateAsDate, y=Value, group = 1, color="Release"), size=1) +
+  geom_line(data = dfResDataDaily %>% filter(ResName == "Lake Powell", FieldName == "Inflow Volume", WaterYear >= max(WaterYear) - 1), aes(x = DateAsDate, y=Value, group = 1, color="Inflow"), size=1) +
+  
+    scale_color_manual(" ", labels = c(dfYearToDateVolume$Label[1],dfYearToDateVolume$Label[2] ), values = c("Inflow" = pBlues[7], "Release" = pReds[7])) +
+  scale_x_date( date_breaks = "2 month", date_labels = "%b\n%Y") +
+
+    #Create secondary y axes for flow in cfs
+  scale_y_continuous(labels = scales::label_comma(), sec.axis = sec_axis(transform = ~ . * 0.504, name = "Average Daily Flow\n(Cubic feet per second)", labels = scales::label_comma())) +
+  
+     labs(x="", y="Water Volume\n(Acre-feet per day)") +  
+  
+  theme(text = element_text(size=lFontSize), legend.title=element_blank(), legend.text=element_text(size=lFontSize - lFontSizeReduction),
+        panel.background = element_blank(), 
+        legend.key = element_blank(),
+        axis.line = element_line(colour = "black"))
+
+
