@@ -1,5 +1,5 @@
 ---
-title: "Lake Powell and Lake Mead Historical and Current Reservoir Data"
+title: "Figures in support of paper Why communicating minimum drawdown elevations for Lake Powell and Lake Mead can mitigate risks of volatile Colorado River flow."
 author: "David E. Rosenberg"
 
 output: pdf_document
@@ -31,22 +31,33 @@ sTodaysDate <- print(paste0("This report was generated on: ", sYesterdayDate))
 
 ## Overview
 
-This is an R Markdown document. The document generates plots for Lake Powell and Lake Mead:
+This is an R Markdown document. This document generates Figures 1, 2, and 4 in support of the paper "Why communicating minimum drawdown elevations for Lake Powell and Lake Mead can mitigate risks of volatile Colorado River flow."
 
-1. Annual Lake Powell Release Compared to 7.5 and 8.23 Targets
+## Figures:
+
+1. Lake Powell storage over time in relation to critical volumes.
+2. Lake Mead storage over time in relation to critical volumes.
+4. Recent Lake Powell storage (black) with example minimum drawdown and catastrophic elevations (red dashed).
+
+## Additional Figures:
+
+AA. Lake Powell, Lake Mead, and Combined Storage.
+BB. Lake Powell Daily Inflow and Release. Total volumes in legend are water year to date.
 
 ## Data wrangling strategy
 
-1. Import the reservoir elevation-volume curves.
-1. Import Daily, Monthly, and Annual Lake Powell and Lake Mead data from the Reclamation's HydroData Web portal
-https://www.usbr.gov/uc/water/hydrodata/reservoir_data/site_map.html
+1. Import the reservoir elevation-volume curves from the folder AutoReadUSBRData.
+1. Import Daily, Monthly, and Annual Lake Powell and Lake Mead data from the Reclamation's HydroData Web portal https://www.usbr.gov/uc/water/hydrodata/reservoir_data/site_map.html. Or use saved data in the AutoReadUSBR folder.
+1. Import the critical reservoir elevations/volumes from AutoReadUSBRData folder.
+1. Manipulate those critical volumes to volumes to show on right axes of plots.
 1. Filter the reservoir data for the appropriate variables/fields.
+1. Add Minimum Drawdown and Catastrophic Elevations.
 
 
 This is a beginning R-programming effort! There could be lurking bugs or basic coding errors that I am not even aware of. Please report bugs/feedback to me (contact info below)
 
 ## Requested Citation
-David E. Rosenberg (2026), "Lake Powell and Lake Mead Historical and Current Reservoir Data." Utah State University. Logan, Utah. https://github.com/dzeke/ColoradoRiverCollaborate/tree/main/HistoricalCurrentReservoirData.
+David E. Rosenberg (2026), "Why communicating minimum drawdown elevations for Lake Powell and Lake Mead can mitigate risks of volatile Colorado River floa." Utah State University. Logan, Utah. https://github.com/ImmersiveModelsColoradoRiver/MinimumDrawdownElevations.
 
 ```{r Setup2, echo=FALSE, warning=FALSE, message=FALSE}
 
@@ -73,20 +84,20 @@ dfTemp <- ReadBathymetryCritialElevations()
 # Let's try plotting the annuall Lake Powell Release
 dfResDataAnnual <- lResData$dfResAnnual
 
-#Filter the Powell Release Volume
-dfPowellAnnual <- dfResDataAnnual %>% filter(ResName == "Lake Powell",FieldName == "Release volume")
+# #Filter the Powell Release Volume
+# dfPowellAnnual <- dfResDataAnnual %>% filter(ResName == "Lake Powell",FieldName == "Release volume")
+# 
+# #10-year total release
+# dfPowellAnnual$TenYearRelease <- rollapply(dfPowellAnnual$AnnualValue, 10,sum, fill=NA, align="right")
+# 
+# #7.48 and 8.23 MAF annual targets
+# dfPowellAnnual$OneYearTarget <- 7.48  # Paria flow (0.02 maf per year adds 0.2 maf over 10 years)
+# dfPowellAnnual$OneYearTarget82 <- dfPowellAnnual$OneYearTarget + 0.75
+# dfPowellAnnual$TenYearTarget <- dfPowellAnnual$OneYearTarget * 10  # Paria flow (0.02 maf per year adds 0.2 maf over 10 years)
+# dfPowellAnnual$TenYearTarget82 <- dfPowellAnnual$TenYearTarget + 10*0.75
 
-#10-year total release
-dfPowellAnnual$TenYearRelease <- rollapply(dfPowellAnnual$AnnualValue, 10,sum, fill=NA, align="right")
 
-#7.48 and 8.23 MAF annual targets
-dfPowellAnnual$OneYearTarget <- 7.48  # Paria flow (0.02 maf per year adds 0.2 maf over 10 years)
-dfPowellAnnual$OneYearTarget82 <- dfPowellAnnual$OneYearTarget + 0.75
-dfPowellAnnual$TenYearTarget <- dfPowellAnnual$OneYearTarget * 10  # Paria flow (0.02 maf per year adds 0.2 maf over 10 years)
-dfPowellAnnual$TenYearTarget82 <- dfPowellAnnual$TenYearTarget + 10*0.75
-
-
-#Get the blue color bar
+#Get the blue and red color bar/scales
 pBlues <- brewer.pal(9,"Blues")
 pReds <- brewer.pal(9,"Reds")
 
