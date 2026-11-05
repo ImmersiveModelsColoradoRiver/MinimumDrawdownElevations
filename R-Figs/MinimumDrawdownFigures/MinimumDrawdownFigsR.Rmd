@@ -232,7 +232,7 @@ ggplot() +
 
   geom_line(data = dfResStorageWide, aes(x = DateAsDate, y = `Lake Powell`), size = 1.5) +
 
-  geom_text(aes(x = as.Date("2021-01-01"), y = 21.7, label = cCurrentPowell), fontface = "bold", color = "blue", size = nTextSize) + 
+  geom_text(aes(x = as.Date("2018-01-01"), y = 21.7, label = cCurrentPowell), fontface = "bold", color = "blue", size = nTextSize) + 
   geom_text(aes(x = as.Date("2021-01-01"), y = 18.5, label = cPowellElevationsConcat), color = pReds[7], size = nTextSize) +
 
   
@@ -303,7 +303,7 @@ ggplot() +
   
   geom_line(data = dfResStorageWide, aes(x = as.Date(Date), y = `Lake Mead`), size = 1.5) +
 
-  geom_text(aes(x = as.Date("2020-01-01"), y = 20.5, label = cCurrentMead), fontface = "bold", color = "blue", size = 3) + 
+  geom_text(aes(x = as.Date("2017-01-01"), y = 20.5, label = cCurrentMead), fontface = "bold", color = "blue", size = 3) + 
   geom_text(aes(x = as.Date("2020-01-01"), y = 17, label = cMeadElevationsConcat), color = pReds[7], size = 3) +
   
   
