@@ -74,8 +74,8 @@ here::i_am("MinimumDrawdownFigures/MinimumDrawdownFigsR.r")
 source("../AutoReadUSBRData/AutoReadUSBRData.r")
 
 # Read in the Reclamation Hydro Data
-#lResData <- fReadReclamationHydroData(FromHydroData = TRUE)
-lResData <- fReadReclamationHydroData(FromHydroData = FALSE)
+lResData <- fReadReclamationHydroData(FromHydroData = TRUE)
+#lResData <- fReadReclamationHydroData(FromHydroData = FALSE)
 
 
 # Read in the Reservoir Bathymetry and Critical Elevations
@@ -158,7 +158,7 @@ dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake 
 #Turn narrow into wide so separate columns for Lake Powell and Lake Mead
 dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
 
-dfYesterday <- data.frame(Date = dMaxDay, 
+dfYesterday <- data.frame(Date = as.Date(dMaxDay), 
                           Year = year(dMaxDay), 
                           Month = month(dMaxDay))
                           
@@ -246,7 +246,7 @@ ggplot() +
   
     theme_bw() +
   
-  labs(x="", y="Powell Active Storage (MAF)") +
+  labs(x="", y="Lake Powell Active Storage\n(Million acre-feet)") +
   theme(text = element_text(size=lFontSize), legend.position = "none",
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -318,7 +318,7 @@ ggplot() +
     geom_point(data = dfLastDate, aes(x = DateAsDate, y = `Lake Mead`), color = "blue", size = 4 ) +
   theme_bw() +
   
-  labs(x="", y="Mead Active Storage (MAF)") +
+  labs(x="", y="Lake Mead Active Storage\n(Million acre-feet)") +
   theme(text = element_text(size=lFontSize), legend.position = "none",
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
@@ -426,7 +426,7 @@ ggplot() +
   
   theme_bw() +
   
-  labs(x="", y="Active Storage (maf)") +
+  labs(x="", y="Lake Powell Active Storage\n(Million acre-feet)") +
   
   theme(text = element_text(size=lFontSize), legend.position = "none",
         panel.grid.major = element_blank(),
@@ -449,11 +449,11 @@ ggplot() +
 
 # Filter the Powell and Mead monthly storages
 
-dfResDataMonthly <- lResData$dfResMonthly
-#Filter the Powell and Mead storages
-dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
-#Turn narrow into wide so separate columns for Lake Powell and Lake Mead
-dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
+# dfResDataMonthly <- lResData$dfResMonthly
+# #Filter the Powell and Mead storages
+# dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
+# #Turn narrow into wide so separate columns for Lake Powell and Lake Mead
+# dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
 #Filter to data after 1995
 dfResStorageWide1995 <- dfResStorageWide %>% filter(Year >= 1995)
 
@@ -480,7 +480,7 @@ ggplot() +
   #scale_fill_manual(breaks=c(1:6),values = palBlues[2:7]) + #,labels = variable) + 
   theme_bw() +
   #coord_fixed() +
-  labs(x="", y="Active Storage (MAF)", color = "Reservoir") +
+  labs(x="", y="Active Storage\n(Million acre-feet)", color = "Reservoir") +
   theme(text = element_text(size=lFontSize), legend.title=element_blank(), legend.text=element_text(size=lFontSize-2))
 #theme(text = element_text(size=20), legend.text=element_text(size=16)
 
