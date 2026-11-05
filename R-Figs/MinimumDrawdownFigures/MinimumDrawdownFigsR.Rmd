@@ -74,8 +74,8 @@ here::i_am("MinimumDrawdownFigures/MinimumDrawdownFigsR.r")
 source("../AutoReadUSBRData/AutoReadUSBRData.r")
 
 # Read in the Reclamation Hydro Data
-lResData <- fReadReclamationHydroData(FromHydroData = TRUE)
-#lResData <- fReadReclamationHydroData(FromHydroData = FALSE)
+#lResData <- fReadReclamationHydroData(FromHydroData = TRUE)
+lResData <- fReadReclamationHydroData(FromHydroData = FALSE)
 
 
 # Read in the Reservoir Bathymetry and Critical Elevations
@@ -157,6 +157,8 @@ dfResDataMonthly <- lResData$dfResMonthly
 dfResStorage <- dfResDataMonthly %>% filter(ResName %in% c("Lake Powell", "Lake Mead"), FieldName == "Storage")
 #Turn narrow into wide so separate columns for Lake Powell and Lake Mead
 dfResStorageWide <- pivot_wider(  dfResStorage %>% group_by(ResName, Date, Year, Month) %>% select(ResName, Date, Year, Month, MonthlyValue),   names_from = ResName,   values_from = MonthlyValue)
+
+dfResStorageWide$Date <- as.Date(dfResStorageWide$Date)
 
 dfYesterday <- data.frame(Date = as.Date(dMaxDay), 
                           Year = year(dMaxDay), 
