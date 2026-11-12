@@ -326,6 +326,12 @@ ggplot() +
         panel.grid.minor = element_blank(),
         axis.text.y.right = element_text(size = lFontSize - lFontSizeReduction))
 
+
+##### Dump critical elevations to csv files
+write.csv(dfPowellElevations, "dfPowellElevations.csv")
+write.csv(dfMeadElevations, "dfMeadElevations.csv")
+
+
 ```
 
 ## Figure 4: Lake Powell Minimum Drawdown and Catastrophic Elevations - Daily Data

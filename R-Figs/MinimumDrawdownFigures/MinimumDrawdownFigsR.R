@@ -249,6 +249,9 @@ ggplot() +
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank())
 
+##### Dump critical elevations to csv files
+write.csv(dfPowellElevations, "dfPowellElevations.csv")
+write.csv(dfMeadElevations, "dfMeadElevations.csv")
 
 ######################################
 ### Figure 4. Lake Powell elevations with buffer and catastrophic elevations
